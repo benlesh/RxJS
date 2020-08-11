@@ -5,6 +5,10 @@ Author: Ben Lesh
 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://licensebuttons.net/l/by/4.0/80x15.png" /></a>
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>
 
+## Work In Progress
+
+This guide is evolving. Some sections below are marked "TODO" because they are currently under development.
+
 ## Overview
 
 This section is a guide to how to approach RxJS concepts and how to address common issues while learning and using this library. The goal is to go into as much detail as possible or necessary in as many aspects of RxJS as possible while also trying to provide a quick high-level overview of the concepts.
