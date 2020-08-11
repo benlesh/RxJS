@@ -20,6 +20,8 @@ As you are reading, if you don't have time to dive deeply into any one topic, pl
 The topics are ordered intentionally to provide insight into things folks will need to know about RxJS first before diving into deeper topics. For example, one of the first things people need to know about RxJS is [how to subscribe to an observable](1-subscribing.md), because often "first contact" with RxJS is because they have gotten an observable back from some API or service they just started using in their codebase.
 
 
+> TODO: Get the ordering and numbering of these right (finalize them)
+
 1. [Subscribing](1-subscribing.md)
 2. [Unsubscribing](2-unsubscribing.md)
 3. [Creating An Observable](3-creating-an-observable.md)
@@ -27,15 +29,16 @@ The topics are ordered intentionally to provide insight into things folks will n
 5. [Implementing Operators](5-implementing-operators.md)
 6. [Chaining Operators](6-chaining-operators.md)
 7. [Flattening Operations](7-flattening-operations.md)
-8. [Subjects](8-subjects.md)
-9.  Multicasting (TODO)
-10. Error Handling (TODO)
-11. Async Await And Promises (TODO)
-12. Schedulers And Scheduling (TODO)
-13. Testing Operators (TODO)
-14. Testing Application Code (TODO)
-15. Debugging (TODO)
-16. Performance (TODO)
+8. [Advanced Subscription Management](7.1-advanced-subscription-management.md)
+9. [Subjects](8-subjects.md)
+10. Multicasting (TODO)
+11. Error Handling (TODO)
+12. Async Await And Promises (TODO)
+13. Schedulers And Scheduling (TODO)
+14. Testing Operators (TODO)
+15. Testing Application Code (TODO)
+16. Debugging (TODO)
+17. Performance (TODO)
 
 ## Additional Topics
 

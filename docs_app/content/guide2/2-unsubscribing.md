@@ -38,6 +38,32 @@ try {
 }
 ```
 
+## Do You Always Need To Unsubscribe?
+
+Well, no... but **WHEN IN DOUBT, UNSUBSCRIBE**. Unsubscription is important because it helps RxJS provide deterministic resource management for your application. However, it is worth noting that while unsubscription will teardown underlying resources, errors and completions will _also_ teardown underlying resources in the same manner. So, to some degree, a completion is as good as an unsubscription in many cases.
+
+### NO NEED to unsubscribe:
+
+- **Subscriptions that should stay active for the life of your server/web document**. If it needs to stay up for as long as the host environment is open, then there is no need to tear it down. **HOWEVER**. If you have a web application that can be mounted and unmounted, you will want to unsubscribe from all subscriptions owned by that web application. Otherwise, when unmounting the app it will leave it subscriptions active and hang onto resources.
+- **Subscriptions that you know will complete that are delivering a value you always want to get**. For example, if you're loading some expensive to calculate data that you know you're going to use eventually, and you don't want to get it twice, you might choose to allow an observable to run to completion, even if the original consuming code no longer cares about the value.
+- **Synchronous observables**. By the time you get the `Subscription` back from a synchronous observable, it is already `complete`, and it as already torndown. There is no need to keep the `Subscription` in memory or unsubscribe from it later (It won't hurt much if you do, but it's unnecessary). Examples of these are things like the result of [`of`](API), [`from`](API), [`range`](API), et al.
+
+### MUST unsubscribe:
+
+- **Never-ending subscriptions**. If you do not unsubscribe from these, they will continue forever and consume memory and computing resources. Examples of this could be a web socket stream, or a simple interval. You don't need your app ticking along processing repetitive tasks it no longer cares about and consuming precious time on that single thread.
+- **Long-running, expensive subscriptions**. Subscriptions whose actions or side effects are expensive or no longer necessary must be unsubscribed when no longer in use. This, again, is to free up processing capacity and memory. Large streaming results from HTTP or web sockets, even if you've engineered them to complete after some time, must be torn down when you no longer are interested in their results. This is done to prevent memory leaks and free up resources.
+- **Subscriptions that register event handlers**. Subscriptions who register objects or functions (particularly functions with closures) with external event emitters and event targets must be torn down. Such things are a common cause of memory leaks, and functions registered and event handlers that close over other variables and objects (such as a component reference via `this`) can cause large things to be retained in memory indefinitely.
+
+
+### SHOULD unsubscribe:
+
+- **Single-value subscriptions you know will complete quickly**. Examples of this would be something like a quick HTTP GET or POST. It's not going to be the end of the world if you don't unsubscribe here. You're effectively opting for the same poor behavior you'd have gotten from a promise-based HTTP library in that case, as they do not have cancellation. However, this generally amounts to lazy programming, so it should still be avoided if possible.
+
+
+## What About takeUntil and "Parent Subscriptions", etc?
+
+We will cover that in [Advanced Subscription Management](LINK) later in the guide.
+
 ---
 
 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://licensebuttons.net/l/by/4.0/80x15.png" /></a>
