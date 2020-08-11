@@ -63,6 +63,7 @@ class MyComponent {
     /////
     // External methods that affect subscriptions
     ////
+    
     /**
      * This method could be called by the system to stop updating values
      * related to our button clicks.
@@ -180,6 +181,7 @@ class MyComponent {
     /////
     // External methods that affect subscriptions
     ////
+
     /**
      * This method could be called by the system to stop updating values
      * related to our button clicks.
@@ -245,7 +247,134 @@ class MyComponent {
 
 ### Strategy 3: Terminal Operators Like `takeUntil` and `first` (et al)
 
-TODO
+This particular strategy takes a different tack entirely. Rather than managing subscriptions through [unsubscription](GL), it is managing them through [completion](GL). Operators like `takeUntil` force subscription teardown by composing in behaviors that cause the subscription to complete.
+
+
+```ts
+class MyComponent {
+    ///////
+    // These are "read" points for our system. We're writing to these
+    // in our subscription and we'll pretend that is what is being read
+    // by whatever is using this component class.
+    //////
+
+    /** The number of clicks so far */
+    clickCount = 0;
+
+    /** A rough estimate of seconds ellapsed */
+    secondsElapsed = 0;
+
+    /** The seconds elapsed as of the last click */
+    secondsAtLastTick?: number;
+
+    
+    //// 
+    // Teardown notifiers
+    ////
+    
+    /** Will emit when onDestroy fires (wired below) */
+    private destroyed$ = new Subject<void>();
+
+    /** Will emit when stop listening for clicks is called */
+    private stopListeningForClicks$ = new Subject<void>();
+
+
+    ////
+    // Start up notifier
+    ////
+
+    /** Will emit when there is a call to `startListeningForClicks()` */
+    private startListeningForClicks$ = new Subject<void>();
+
+    /////
+    // Our observables. These are the various observables we're going to subscribe
+    // to while our component is active.
+    /////
+
+    /**
+     * An observable of incrementing numbers, starting at 0 and going up,
+     * approximately every second.
+     */
+    private ticks$ = timer(0, 1000).pipe(
+        takeUntil(this.destroyed$)
+    );
+
+    /**
+     * An observable of click events from some button related to our component.
+     */
+    private buttonClicks$ = this.startListeningForClicks$.pipe(
+        exhaustMap(() => 
+            fromEvent(document.querySelector('#mybutton'), 'click').pipe(
+                takeUntil(this.stopListeningForClicks$),
+            )
+        ),
+        takeUntil(this.destroyed$)
+    );
+
+
+    /////
+    // External methods that affect subscriptions
+    ////
+
+    /**
+     * This method could be called by the system to stop updating values
+     * related to our button clicks.
+     */
+    stopListeningForClicks() {
+        this.stopListeningForClicks$.next();
+    }
+
+    /**
+     * An call to start listening for clicks.
+     */
+    startListeningForClicks() {
+        this.startListeningForClick$.next();
+    }
+
+    /////
+    // Lifecycle events
+    //// 
+
+    /**
+     * Called when the component initializes
+     */
+    private onInit() {
+        // In here is where we are starting all of our subscriptions.
+        this.ticks$.subscribe(tick => {
+            this.secondsElapsed = tick;
+        });
+        this.buttonClicks$.subscribe(() => {
+            this.secondsAtLastTick = this.secondsElapsed;
+            this.clickCount++;
+        });
+    }
+
+    /**
+     * Called when the component is destroyed.
+     */
+    private onDestroy() {
+        this.destroyed$.next();
+    }
+}
+```
+
+### Things To Notice
+
+- We're not longer tracking `Subscription` objects anywhere. Instead, we're relying on the teardown to occur when the subscriptions are completed by `takeUntil` calls.
+- We needed to change how we started the clicks subscription. This is because before we were relying on the presence of the subscription object, which we are no longer tracking.
+- This also exhibits the use of a [`Subject`](API) as a notifier to _start_ a subscription. We can use this to start all observables in the component, if we chose, meaning that subscription and teardown behaviors for any given observable could be tracked at its point of declaration.
+
+### PROS
+
+- The teardown behavior for any given observable is composed at the site of the observable's declaration. It becomes apparent as to when this subscription will be torn down from reading the code in one spot. (As opposed to needing to look for the `onDestroy` method).
+- It is declarative. Adding more teardown behaviors to this is a lot easier.
+- No `Subscription` objects to track.
+
+### CONS
+
+- More allocations and overhead than composite subscriptions or ad-hoc strategies. We have to use more operators, which means more subscribers and subscriptions, and more function calls during the processing of the streams.
+- Very "Rx-y". This approach relies on the developers to have a strong knowledge of RxJS and its operators, and might not be a palatable approach for some times.
+
 
 ### Strategy 4: Tap And Join
 
