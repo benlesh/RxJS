@@ -115,7 +115,7 @@ class MyComponent {
 There are a few things to note about the ad-hoc strategy:
 
 * Our `clickSubscription` is being set to `undefined`. This because we're using `clickSubscription` in the `startListeningForClicks()` method to check to make sure we don't subscribe to it twice. (Idempotence).
-* Subscription properities/variables are named very specifically. Stay away from naming them `subscription` or `sub1` and `sub2`. That isn't very useful.
+* Subscription properties/variables are named very specifically. Stay away from naming them `subscription` or `sub1` and `sub2`. That isn't very useful.
 * Note that we are NOT setting our subscription references to `undefined` in our `onDestroy()` call. This is because in most systems/frameworks (such as Angular, React, Vue, et al), an "onDestroy" or equivalent ("componentWillUnmount", etc), is being called before the entire component itself is going to be orphaned for garbage collection. **If you are unsure that your class instance will be garbage collected**, you should set your subscription properties to `undefined` so the subscription instances will be garbage collected. Subscriptions themselves can sometimes contain references to large allocations, depending on various operators you could be using (such as those that cache values).
 
 ### Pros
@@ -130,7 +130,7 @@ There are a few things to note about the ad-hoc strategy:
 
 ## Strategy 2: Composite Subscriptions
 
-Also called "parent subscriptions". With this approach you create a single, "parent" subscriptoin and register all child subscriptions to it with the [`add`](API) method.
+Also called "parent subscriptions". With this approach you create a single, "parent" subscription and register all child subscriptions to it with the [`add`](API) method.
 
 
 ```ts
@@ -241,7 +241,7 @@ class MyComponent {
 
 ### Cons
 
-- Still need to manage subscriptions that could be unsubscribed in more than one way seperately.
+- Still need to manage subscriptions that could be unsubscribed in more than one way separately.
 - Almost as verbose, in some cases, as the ad-hoc approach above.
 
 
@@ -373,7 +373,7 @@ class MyComponent {
 ### CONS
 
 - More allocations and overhead than composite subscriptions or ad-hoc strategies. We have to use more operators, which means more subscribers and subscriptions, and more function calls during the processing of the streams.
-- Very "Rx-y". This approach relies on the developers to have a strong knowledge of RxJS and its operators, and might not be a palatable approach for some times.
+- Very "Rx-y". This approach relies on the developers to have a strong knowledge of RxJS and its operators, and might not be a palatable approach for some teams.
 
 
 ### Strategy 4: Tap And Join
