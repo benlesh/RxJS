@@ -1,4 +1,4 @@
-# 9. Writing Readable RxJS
+# ????. Writing Readable RxJS
 
 # TLDR:
 
@@ -244,3 +244,8 @@ function saveOrderAndPreventDoubleSubmission(): OperatorFunction<any, SavedOrder
 ```
 
 What the goal is for the comments above is really just to give the next developer (or your future self) more context as to why you made particular decisions with the code. Some of it may be obvious to you now, or it may become more obvious to you over time, but that doesn't mean you should not create useful comments for people that don't have the same level of understanding of the code base as you. The "What if you get hit by a bus?" factor should always apply.
+
+---
+
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://licensebuttons.net/l/by/4.0/80x15.png" /></a>
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>

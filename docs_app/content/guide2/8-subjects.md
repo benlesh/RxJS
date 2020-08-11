@@ -302,3 +302,8 @@ Using an Observable over a Subject for this is better for a few reasons:
 ## Subject Gotchas
 
 **Subjects cannot be reused. If they complete or error, they are DONE.**. This is because subjects provide all of the same guarantees as [subscribers](GL) and other forms of [observation](GL) in RxJS. You can't call `next` after `error` or `complete`. The implications of this are that various forms of multicasting cannot be resubscribed to, meaning operators like [`repeat`](API) and [`retry`](API), et al, have no effect on subjects or subject-derived observables. Subjects that have been notified of an [error](GL) will emit the error again if you subscribe to them a second time. However, a subject will not error or do anything at all if you call `next`, `error`, or `complete` on them after they've closed due to `error` or `complete` being called on it.
+
+---
+
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://licensebuttons.net/l/by/4.0/80x15.png" /></a>
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>

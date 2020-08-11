@@ -22,3 +22,7 @@ All [teardown](GL) logic registered by an Observable _must_ be called if subscri
 
 If all resources are set up and consumed with the same type, they all return the same-shaped teardown mechanism, in this case a [`Subscription`](API). [Subscriptions can be composed](TODO) and this can greatly improve the ergonomics around preventing memory leaks in your application.
 
+---
+
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://licensebuttons.net/l/by/4.0/80x15.png" /></a>
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>

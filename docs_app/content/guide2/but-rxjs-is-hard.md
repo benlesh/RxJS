@@ -106,3 +106,8 @@ If this is the case, I'd recommend using an online playground/sandbox app like [
 5. Put a [`tap`](API) in there somewhere. `tap` is used to execute [side effects](GL) and will not effect the values you're [streaming](GL). If you're not sure what part of your [chain](GL) is getting, put a `tap(console.log)` in there, and see what it prints out.
 6. Reconcile your findings with the documentation. Double check that it's doing what you think it's doing after your experimentation.
 7. Try throwing errors in different parts of your code. What happens?
+
+---
+
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://licensebuttons.net/l/by/4.0/80x15.png" /></a>
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>

@@ -64,3 +64,8 @@ All unhandled errors will be rethrown in a different call context. This is done 
 ### Handled Errors
 
 Simply by providing an [error](GL) callback to your [`subscribe`](API) call, via an [observer](#Subscription_With_An_Observer) (or by the deprecated error callback argument), RxJS will treat errors pushed by the [producer](GL) has "handled". This means whatever that error handler function does is all the handling that will be provided for that error.
+
+---
+
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://licensebuttons.net/l/by/4.0/80x15.png" /></a>
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>

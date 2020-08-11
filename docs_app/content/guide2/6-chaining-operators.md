@@ -143,3 +143,8 @@ Currently, this is still sort of "pie in the sky", but we welcome you to try it 
 Babel plugins and event an [experimental branch of TypeScript](LINK) that allow you to use this feature.
 
 It's very interesting, because then you can use a similar approach to RxJS's operators with other types like Arrays, Iterator, et al.
+
+---
+
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://licensebuttons.net/l/by/4.0/80x15.png" /></a>
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>

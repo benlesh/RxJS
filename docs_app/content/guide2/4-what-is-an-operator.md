@@ -69,3 +69,8 @@ An "operator" is sort of a blanket term for a thing that can perform an operatio
 To that end, an operator in RxJS is a function that takes an [`Observable`](API) and returns a new [`Observable`](API). Operators in RxJS are implemented as higher-order functions that return a function that takes a source [`Observable`](API) and returns a brand new [`Observable`](API).
 
 There are so many operators with `Observable` because, not only do we have values as a dimension of how we can transform the observable, but since the values can arrive over time, we there is a temporal nature to observable, meaning not only can you synchronously [`map`](API) or [`filter`](API) an observable, but you can also [`delay`](API) [pushed](GL) [notifications](GL) from arriving to the [consumer](GL).
+
+---
+
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://licensebuttons.net/l/by/4.0/80x15.png" /></a>
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>

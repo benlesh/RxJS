@@ -101,3 +101,8 @@ function customMap<A, B>(fn: (value: A) => B) {
 1. **Creating them at all.** You may have been able to use one or more of RxJS's existing operators. Check the [operator decision tree](LINK) again.
 2. **Forgetting to unsubscribe**. If you don't ensure that your inner subscription is torn down, you will create memory leaks. It's important to double check this. Testing your operator with the [`TestScheduler`](API) and [marble tests](LINK) can help you verify inner subscriptions are torn down by using [`expectSubscriptions`](API).
 3. **Forgoing error handling**. A minor offense if you know and own ALL of the code that will be using your operator, but if you don't properly handle errors [as seen above](#error-handling-in-operators), the consequences will be inconsistent behavior for [consumers](GL) or your operator.
+
+---
+
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://licensebuttons.net/l/by/4.0/80x15.png" /></a>
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>

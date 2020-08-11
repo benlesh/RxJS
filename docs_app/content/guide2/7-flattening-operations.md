@@ -130,3 +130,8 @@ Probably the least popular choice of our flattening strategies, but not because 
 ## Why aren't there more? I need [feature here]!
 
 Well, there are certainly _many_ other ways to flatten an observable. There are common scenarios that are covered by other RxJS operator libraries and we try to keep an eye on those and the requests made in our [GitHub Issues](https://github.com/ReactiveX/rxjs/issues). Someday that feature you're looking for may be added.
+
+---
+
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://licensebuttons.net/l/by/4.0/80x15.png" /></a>
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>
