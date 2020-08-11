@@ -6,7 +6,7 @@ Before you pull the RxJS rip-cord and jump back into promises, you should know t
 
 Plain and simple, promises _cannot_ be cancelled. You can force rejection on them, through complicated composition, but you cannot notify a promise that you are no longer interested in it's value and have it stop using resources in your system.
 
-For example: If you have a promise-based HTTP API, used in a trivial way, even with `fetch`'s [`AbortSignal`](MDN), At best, there is code that will execute and errors that will need to be handled. At worst (and this is currently the common case), a response will come back from the server, take up your thread to process the request, maybe even parse the JSON, only to hit some code where it checks a boolean flag you've set to tell it you no longer care about the work it has done.
+For example: If you have a promise-based HTTP API, used in a trivial way, even with `fetch`'s [`AbortSignal`](MDN), at best, there is code that will execute and errors that will need to be handled. At worst (and this is currently the common case), a response will come back from the server, take up your thread to process the request, maybe even parse the JSON, only to hit some code where it checks a boolean flag you've set to tell it you no longer care about the work it has done.
 
 If your HTTP implementation is observable based, when you cancel, it will abort the underlying HTTP request, the browser will not handle the response, and all code related to it ceases to run. There's no special "abort error" to handle, etc. (Unless you've chose to subscribe to your observable using a [promise interop](LINK_TO_PROMISE_INTEROP_SECTION) API).
 
