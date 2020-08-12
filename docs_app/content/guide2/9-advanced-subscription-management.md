@@ -2,6 +2,7 @@
 
 ## TLDR
 
+- You should use framework or library provided utility to manage your subscriptions whenever possible. (For example [Angular's `| pipe` utility](https://angular.io/api/common/AsyncPipe))
 - You can use [`Subscription`](API) [`add`](API) to add child subscriptions to a single parent.
 - Child subscriptions remove themselves from parents automatically when the child is unsubscribed.
 - Terminal operators like [`takeUntil`](API) or [`first`](API) are a flexible alternative to [`Subscription`](API) objects.
@@ -10,6 +11,8 @@
 ## Overview
 
 As you're developing a component, service, or application, you might find that you create a growing number of subscriptions you need to manage. There are many strategies for handling these subscriptions effectively, and all of them are valid. Here, we're going to talk about the different strategies and the trade-offs to each one.
+
+These strategies are presented in no particular order. All of them do roughly the same thing, and should be treated equally. The only standout is [the strategy of using a provided utility to manage your subscriptions](#strategy-5-using-a-provided-utility), which should be favored, when possible.
 
 > FRAMEWORK AGNOSTIC: The examples below are intentionally generic to avoid any association with a given framework, or even front-end web development. Just assume that `onInit` and `onDestroy` fire when our generic component is in use and no longer being used by the system it lives in. (The examples are clearly "client-side", but RxJS can be used on a server or in any JS environment).
 
@@ -214,9 +217,11 @@ class MyComponent {
      */
     private onInit() {
         // In here is where we are starting all of our subscriptions.
-        this.tickerSubscription = this.ticks$.subscribe(tick => {
-            this.secondsElapsed = tick;
-        });
+        this.mainSubscription.add(
+            this.ticks$.subscribe(tick => {
+                this.secondsElapsed = tick;
+            })
+        );
         this.startListeningForClicks();
     }
 
@@ -245,7 +250,7 @@ class MyComponent {
 - Almost as verbose, in some cases, as the ad-hoc approach above.
 
 
-### Strategy 3: Terminal Operators Like `takeUntil` and `first` (et al)
+## Strategy 3: Terminal Operators Like `takeUntil` and `first` (et al)
 
 This particular strategy takes a different tack entirely. Rather than managing subscriptions through [unsubscription](GL), it is managing them through [completion](GL). Operators like `takeUntil` force subscription teardown by composing in behaviors that cause the subscription to complete.
 
@@ -376,10 +381,162 @@ class MyComponent {
 - Very "Rx-y". This approach relies on the developers to have a strong knowledge of RxJS and its operators, and might not be a palatable approach for some teams.
 
 
-### Strategy 4: Tap And Join
+## Strategy 4: Tap And Join
 
-TODO
+This strategy is similar to the [composite subscription strategy](#strategy-2-composite-subscriptions) above, but rather than create a composite subscription manually, a creation function or other operator is used to create the composite subscription for you.
 
-### Mixing Strategies
 
-TODO
+```ts
+class MyComponent {
+    ///////
+    // These are "read" points for our system. We're writing to these
+    // in our subscription and we'll pretend that is what is being read
+    // by whatever is using this component class.
+    //////
+
+    /** The number of clicks so far */
+    clickCount = 0;
+
+    /** A rough estimate of seconds ellapsed */
+    secondsElapsed = 0;
+
+    /** The seconds elapsed as of the last click */
+    secondsAtLastTick?: number;
+
+    ////
+    // Subscription reference
+    ////
+
+    /** The parent subscription for the component */
+    private mainSubscription = new Subscription();
+
+
+    /////
+    // Notifiers
+    /////
+
+    /** Will emit when stop listening for clicks is called */
+    private stopListeningForClicks$ = new Subject<void>();
+
+    /** Will emit when there is a call to `startListeningForClicks()` */
+    private startListeningForClicks$ = new Subject<void>();
+
+
+    /////
+    // Our observables. These are the various observables we're going to subscribe
+    // to while our component is active.
+    /////
+
+    /**
+     * An observable of incrementing numbers, starting at 0 and going up,
+     * approximately every second.
+     */
+    private ticks$ = timer(0, 1000);
+
+    /**
+     * An observable of click events from some button related to our component.
+     */
+    private buttonClicks$ = this.startListeningForClicks$.pipe(
+        exhaustMap(
+            fromEvent(document.querySelector('#mybutton'), 'click').pipe(
+                takeUntil(this.stopListeningForClick$)
+            )
+        )
+    );
+
+
+    /////
+    // External methods that affect subscriptions
+    ////
+
+    /**
+     * This method could be called by the system to stop updating values
+     * related to our button clicks.
+     */
+    stopListeningForClicks() {
+        this.stopListeningForClicks$.next();
+    }
+
+    /**
+     * An call to start listening for clicks.
+     */
+    startListeningForClicks() {
+        this.startListeningForClicks$.next();
+    }
+
+    /////
+    // Lifecycle events
+    //// 
+
+    /**
+     * Called when the component initializes
+     */
+    private onInit() {
+        this.mainSubscription = merge(
+            this.ticks$.pipe(
+                tap(tick => {
+                  this.secondsElapsed = tick;
+                })
+            ),
+            this.buttonClicks$.pipe(
+                tap(() => {
+                  this.secondsAtLastTick = this.secondsElapsed;
+                  this.clickCount++;
+                })
+            )
+        ).subscribe({
+            error: err => {
+                // all errors land here
+            }
+        })
+    }
+
+    /**
+     * Called when the component is destroyed.
+     */
+    private onDestroy() {
+        this.mainSubscription?.unsubscribe();
+    }
+}
+```
+
+### Things To Notice
+
+- We still need one subscription, but it is one subscription to rule them all.
+- Uses `tap` to apply side effects.
+- We could not toggle the clicks subscription without resorting to the terminal [operator strategy](#strategy-3-terminal-operators-like-takeuntil-and-first-et-al).
+
+### PROS
+
+- All errors thrown in side effects will be sent down to the error handler in the main `subscribe` call. This is because [`tap`](API) will catch errors and forward them to the consumer.
+- It's a useful tool in your tool belt.
+
+### CONS
+
+- Not the most composable approach. Requires the use of other strategies to get certain behaviors.
+- Also very "Rx-y". Requires knowledge of more creation functions and operators to execute well. Might not be a palatable approach for some teams. 
+
+
+## Strategy 5: Using A Provided Utility
+
+This strategy involves using utilities, functions provided by a framework or other library. One prominent example of this would be [Angular's Async Pipe](https://angular.io/api/common/AsyncPipe), which does the work of subscribing to, and unsubscribing from, observables provided to it.
+
+[Svelte also provides](https://svelte.dev/docs#Store_contract) strong support for automatically subscribing to and unsubscribing from observables.
+
+There are a variety of RxJS-related React Hooks that subscribe and unsubscribe from Observables for you, updating state with the emitted values.
+
+Vue also has its own RxJS-related library that provides similar mechanisms.
+
+### PROS
+
+- All subscriptions are guaranteed to be created and unsubscribed from at the appropriate time within the given framework/library/system.
+- Code tends to be cleaner, with no notifiers or Subscription instances to manage.
+
+### CONS
+
+- It is more magical than other approaches, and puts the actual subscription in a black box.
+- Developers, even with a lot of RxJS experience, that are new to the framework or library you are using will be unfamiliar with the approach you are using to subscribe to your observables.
+
+## Mixing Strategies
+
+There is no hard-and-fast rule that developers should only use one subscription management strategy throughout their application. Developers can mix and match any of the strategies throughout their application. However, it is advisable to make sure there is some level of consistency with your subscription strategy throughout your codebase if you are using a large amount of RxJS.
