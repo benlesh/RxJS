@@ -27,7 +27,7 @@ A creation function, in RxJS terms, is simply a standalone function provided by 
 - [`timer`](API)
 - [`defer`](API)
 - [`bindCallback`](API)
-- et al... 
+- et al...
 
 It is highly recommended that you try to use these functions to create your observable. They are well tested, and used in a huge number of projects, and can generally be composed to create most observables you need.
 
@@ -35,37 +35,36 @@ It is highly recommended that you try to use these functions to create your obse
 
 Sometimes, however, RxJS does not offer exactly the creation function you're looking for. Perhaps you need to wrap some other API to create an observable, or there's some bit of nuance to the RxJS implementation you don't like. In that case, you can do what RxJS does with the creation functions under the hood, and use the `Observable` [constructor](API) directly.
 
-
 ### Common Case
 
 In the most common case, you'll be wrapping types that asynchronously deliver data. Here's how the observable constructor is used, in a basic case with a contrived type called `SomeDataService`:
 
 ```ts
 const source$ = new Observable((subscriber) => {
-    // Set up you producer (if you need to) here
-    const dataService = new SomeDataService();
+  // Set up you producer (if you need to) here
+  const dataService = new SomeDataService();
 
-    // Tie your subscriber to your producer here
-    dataService.ondata = (data) => {
-        // Push N values to your consumer with `subscriber.next`
-        subscriber.next(data);
-    };
+  // Tie your subscriber to your producer here
+  dataService.ondata = (data) => {
+    // Push N values to your consumer with `subscriber.next`
+    subscriber.next(data);
+  };
 
-    dataService.onerror = (err) => {
-        // if you have an error, notify the consumer with `subscriber.error`
-        subscriber.error(err);
-    };
+  dataService.onerror = (err) => {
+    // if you have an error, notify the consumer with `subscriber.error`
+    subscriber.error(err);
+  };
 
-    dataService.onclose = () => {
-        // If the producer is done pushing values, notify the consumer
-        // with `subscriber.complete`
-        subscriber.complete();
-    };
+  dataService.onclose = () => {
+    // If the producer is done pushing values, notify the consumer
+    // with `subscriber.complete`
+    subscriber.complete();
+  };
 
-    return () => {
-        // Teardown logic goes here
-        dataService.destroy();
-    };
+  return () => {
+    // Teardown logic goes here
+    dataService.destroy();
+  };
 });
 ```
 
@@ -81,18 +80,19 @@ Let's take a look at the most basic "synchronous firehose":
 
 ```ts
 // BAD: this is going to lock your thread on subscribe!
-const firehose$ = new Observable(subscriber => {
-    let n = 0;
-    while (true) {
-        subscriber.notify(n++);
-    }
+const firehose$ = new Observable((subscriber) => {
+  let n = 0;
+  while (true) {
+    subscriber.notify(n++);
+  }
 });
 
-firehose$.pipe(
+firehose$
+  .pipe(
     // We only wanted (and will only get) 10 values!
     take(10)
-)
-.subscribe(console.log); // Doom here.
+  )
+  .subscribe(console.log); // Doom here.
 ```
 
 The code above will indeed only log 10 values, but it will still lock your thread. So what gives? The answer may seem obvious: There's nothing to stop that `while` loop in the event that the `subscriber` can no longer push values to the [consumer](GL).
@@ -103,40 +103,75 @@ Synchronously, when a subscriber has called `complete` or `error`, or when a con
 
 ```ts
 // BAD: this is going to lock your thread on subscribe!
-const firehose$ = new Observable(subscriber => {
-    let n = 0;
-    // This check will prevent this loop from running forever
-    // as long as there is a `take`, etc.
-    while (!subscriber.closed) {
-        subscriber.notify(n++);
-    }
+const firehose$ = new Observable((subscriber) => {
+  let n = 0;
+  // This check will prevent this loop from running forever
+  // as long as there is a `take`, etc.
+  while (!subscriber.closed) {
+    subscriber.notify(n++);
+  }
 });
 
-firehose$.pipe(
+firehose$
+  .pipe(
     // We only wanted (and will only get) 10 values!
     take(10)
-)
-.subscribe(console.log); // Much better.
+  )
+  .subscribe(console.log); // Much better.
 ```
 
-### Returning Subscription From Initialization
+### Dealing With Inner Subscriptions
 
-For helpful ergonomics, if you return a [`Subscription`](API) object as [teardown](GL) from your initialization function, RxJS will handle that appropriately. There is no need to wrap an RxJS [`Subscription`](API) in a `() => void` function.
+Quite often, when creating operators, or sometimes when creating functions that return observables, you'll find that you need to subscribe to other "inner" observables in the initialization function of the observable you're creating. These inner observables should be properly chained.
 
-This is, in fact, how [operators](GL) are created, which we will get to in a bit.
+It's always okay to return a teardown function that calls `unsubscribe` on the inner subscription, but there are other useful methods of chaining subscriptions that RxJS provides.
+
+#### Returning Subscription From Initialization
+
+For helpful ergonomics, if you return a [`Subscription`](API) object as [teardown](GL) from your initialization function, RxJS will handle that appropriately. There is no need to wrap an RxJS [`Subscription`](API) in a `() => void` function. All functions and subscriptions returned from the initialization function are technically added to the `subscriber` as a subscription.
+
+This is often how [operators](GL) are created, which we will get to in a bit.
 
 ```ts
 const originalSource$ = interval(1000);
 
-const mySource$ = new Observable(subscriber => {
-    const subscription = originalSource$.subscribe({
-        next: value => subscriber.next(value + value),
-        error: err => subscriber.error(err),
-        complete: () => subscriber.complete()
-    });
+const mySource$ = new Observable((subscriber) => {
+  const subscription = originalSource$.subscribe({
+    next: (value) => subscriber.next(value + value),
+    error: (err) => subscriber.error(err),
+    complete: () => subscriber.complete(),
+  });
 
-    return subscription;
-})l
+  return subscription;
+});
+```
+
+#### Adding Inner Subscriptions To The Subscriber
+
+Subscribers are both "safe" observers, providing guarantees mentioned above, as well as Subscriptions themselves. This means that subscribers have `add`, `remove`, and `unsubscribe` methods. We discuss this in a little more detail in [Advanced Subscription Management](LINK) later on. But, in short, the `add` and `remove` allow you to add and remove "child subscriptions" to a parent. Child subscriptions are automatically unsubscribed when the parent is unsubscribed. If a child subscription is unsubscribed undependently from the parent, it is removed from the parent automatically to free up memory.
+
+```ts
+const mySource$ = new Observable((subscriber) => {
+  // This inner subscription to `originalSource$` will
+  // be unsubscribed during teardown.
+  subscriber.add(
+    originalSource$.subscribe({
+      next: (value) => subscriber.next(value + value),
+      error: (err) => subscriber.error(err),
+      complete: () => subscriber.complete(),
+    })
+  );
+
+  subscriber.add(() => {
+    // this will be called during teardown
+  });
+
+  return () => {
+    // This is also technically added to
+    // the subscriber with `subscriber.add`
+    // immediately after being returned.
+  };
+});
 ```
 
 ---
